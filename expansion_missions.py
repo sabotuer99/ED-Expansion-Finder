@@ -58,10 +58,13 @@ for station in stations:
 # identify systems with at least two factions in expansion (and only expansion) state
 print("Finding juicy expansion factions...")
 expansion_systems = {}
+pending_systems = {}
 for system in systems:
   if('minor_factions_updated_at' in system and system['minor_factions_updated_at'] != None):
     active = 0
+    pending = 0
     faction_names = []
+    pending_faction_names = []
     modified = datetime.fromtimestamp(system['minor_factions_updated_at'])
     age = datetime.now() - modified
     age_hours = age.total_seconds() // 3600
@@ -70,14 +73,27 @@ for system in systems:
         if len(faction['active_states']) == 1 and faction['active_states'][0]['name'] == "Expansion":
             active += 1
             faction_names.append(faction_names_by_id[faction['minor_faction_id']])
+        if len(faction['pending_states']) == 1 and faction['pending_states'][0]['name'] == "Expansion":
+            pending += 1
+            pending_faction_names.append(faction_names_by_id[faction['minor_faction_id']])
       if active >= 2 and system['id'] in systems_with_large_orbitals:
         expansion_systems[system['name']] = {}
         expansion_systems[system['name']]['active'] = active
         expansion_systems[system['name']]['factions'] = faction_names
+      if pending >= 2 and system['id'] in systems_with_large_orbitals:
+        pending_systems[system['name']] = {}
+        pending_systems[system['name']]['pending'] = pending
+        pending_systems[system['name']]['factions'] = pending_faction_names
 
 # print our findings
 print("\n\nExpansion systems and factions:")
 for (k,v) in expansion_systems.items():
   print("%s (%d)" % (k, v['active']))
+  for f in v['factions']:
+    print("   " + f)
+
+print("\n\nPending Expansion systems and factions:")
+for (k,v) in pending_systems.items():
+  print("%s (%d)" % (k, v['pending']))
   for f in v['factions']:
     print("   " + f)
